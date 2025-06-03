@@ -1,13 +1,12 @@
-// Глобальный массив для хранения статей
+
 let articles = [];
 
-// Инициализация панели при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
-    // Загрузка статей из JSON и синхронизация с сохраненными просмотрами
+    
     fetch('Articles.json')
         .then(response => {
             if (!response.ok) throw new Error('Не удалось загрузить Articles.json');
-            console.log('JSON успешно загружен'); // Отладка
+            console.log('JSON успешно загружен'); 
             return response.json();
         })
         .then(data => {
@@ -16,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ...article,
                 views: storedViews[article.id] || article.views
             }));
-            console.log('Инициализированные статьи:', articles); // Отладка
+            console.log('Инициализированные статьи:', articles); 
             initDashboard();
         })
         .catch(error => {
@@ -24,24 +23,24 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('articlesGrid').innerHTML = '<p class="text-muted">Ошибка загрузки статей.</p>';
         });
 
-    // Настройка переключателя тем
+    
     const themeToggle = document.getElementById('themeToggle');
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-bs-theme', savedTheme);
     themeToggle.checked = savedTheme === 'dark';
 
-    // Переключение светлой/темной темы и сохранение в localStorage
+    
     themeToggle.addEventListener('change', () => {
         const newTheme = themeToggle.checked ? 'dark' : 'light';
         document.documentElement.setAttribute('data-bs-theme', newTheme);
         localStorage.setItem('theme', newTheme);
     });
 
-    // Обновление статей при смене сортировки
+    
     document.getElementById('sortSelect').addEventListener('change', updateArticles);
 });
 
-// Инициализация компонентов панели
+
 function initDashboard() {
     if (!articles.length) {
         document.getElementById('articlesGrid').innerHTML = '<p class="text-muted">Нет доступных статей.</p>';
@@ -53,31 +52,31 @@ function initDashboard() {
     populateCategories();
 }
 
-// Обновление сетки статей с учетом категории и сортировки
+
 function updateArticles() {
     const activeCategory = document.querySelector('#categoryList .nav-link.active')?.dataset.category || 'all';
     const sortBy = document.getElementById('sortSelect').value;
     const articlesGrid = document.getElementById('articlesGrid');
     
-    // Фильтрация статей по категории
+    
     let filteredArticles = activeCategory === 'all' ? articles : articles.filter(a => a.category === activeCategory);
     
-    // Сортировка статей
+    
     filteredArticles = [...filteredArticles].sort((a, b) => {
         if (sortBy === 'views') {
-            return b.views - a.views; // Сортировка по убыванию просмотров
+            return b.views - a.views; 
         } else {
-            return new Date(b.date) - new Date(a.date); // Сортировка по дате (новые первыми)
+            return new Date(b.date) - new Date(a.date); 
         }
     });
     
-    // Отображение статей
+    
     articlesGrid.innerHTML = filteredArticles.length ? '' : '<p class="text-muted">Статьи не найдены.</p>';
     filteredArticles.forEach(article => articlesGrid.appendChild(createArticleCard(article)));
-    console.log('Обновленная сетка статей:', filteredArticles.map(a => ({ id: a.id, title: a.title, views: a.views }))); // Отладка
+    console.log('Обновленная сетка статей:', filteredArticles.map(a => ({ id: a.id, title: a.title, views: a.views }))); 
 }
 
-// Создание карточки статьи
+
 function createArticleCard(article) {
     const col = document.createElement('div');
     col.className = 'col';
@@ -96,30 +95,30 @@ function createArticleCard(article) {
     `;
     col.addEventListener('click', () => {
         article.views++;
-        console.log(`Статья ${article.id} просмотрена, просмотры: ${article.views}`); // Отладка
+        console.log(`Статья ${article.id} просмотрена, просмотры: ${article.views}`);
         saveViews();
         showArticleModal(article);
-        updateArticles(); // Обновляем сетку для пересортировки
-        displayMostPopular(); // Обновляем "Most Popular"
+        updateArticles(); 
+        displayMostPopular(); 
     });
     return col;
 }
 
-// Сохранение просмотров в localStorage
+
 function saveViews() {
     const views = articles.reduce((acc, article) => {
         acc[article.id] = article.views;
         return acc;
     }, {});
     localStorage.setItem('articleViews', JSON.stringify(views));
-    console.log('Сохраненные просмотры:', views); // Отладка
+    console.log('Сохраненные просмотры:', views); 
 }
 
-// Отображение самой популярной статьи
+
 function displayMostPopular() {
     const mostPopular = [...articles].sort((a, b) => b.views - a.views)[0];
     if (!mostPopular) return;
-    console.log('Самая популярная статья:', mostPopular.title, 'с просмотрами:', mostPopular.views); // Отладка
+    console.log('Самая популярная статья:', mostPopular.title, 'с просмотрами:', mostPopular.views); 
     document.getElementById('mostPopular').innerHTML = `
         <div class="card-body">
             <span class="badge bg-primary mb-2">${mostPopular.category}</span>
@@ -134,7 +133,7 @@ function displayMostPopular() {
     `;
 }
 
-// Заполнение списка категорий
+
 function populateCategories() {
     const categories = [...new Set(articles.map(a => a.category))];
     const categoryList = document.getElementById('categoryList');
@@ -153,7 +152,7 @@ function populateCategories() {
     });
 }
 
-// Отображение статьи в модальном окне
+
 function showArticleModal(article) {
     document.getElementById('modalTitle').textContent = article.title;
     document.getElementById('modalBody').innerHTML = `
@@ -167,17 +166,17 @@ function showArticleModal(article) {
     new bootstrap.Modal(document.getElementById('articleModal')).show();
 }
 
-// Форматирование даты
+
 function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-// Расчет времени чтения
+
 function calculateReadingTime(wordCount) {
     return Math.ceil(wordCount / 200);
 }
 
-// Экспорт функции для глобального доступа
+
 window.showArticleModal = showArticleModal;
 
 
